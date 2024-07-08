@@ -38,7 +38,7 @@ def create_oauth2_credentials():
             credentials.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json',  # Specify the path to your client secret JSON file
+                'CalenderAPI/credentials.json',  # Specify the path to your client secret JSON file
                 scopes=SCOPES
             )
             credentials = flow.run_local_server(port=0)
@@ -61,7 +61,7 @@ def list_events():
         service = build("calendar", "v3", credentials=credentials)
 
         # Define the calendar ID (here, 'primary' refers to the primary calendar of the authenticated user)
-        calendar_id = 'primary'
+        calendar_id = '1b90945a4bbd496d3efa45dbe482c0e315288f68a9a1cafbe0c8d329012836e7@group.calendar.google.com'
 
         # Get the events from the calendar
         events_result = service.events().list(calendarId=calendar_id).execute()

@@ -11,7 +11,7 @@ from googleapiclient.errors import HttpError
 load_dotenv()
 
 # OAuth2 scopes for Google Calendar API
-SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
+SCOPES = ['https://www.googleapis.com/auth/calendar.readonly', 'https://www.googleapis.com/auth/calendar.events']
 
 def create_oauth2_credentials():
     """
@@ -38,7 +38,7 @@ def create_oauth2_credentials():
             credentials.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json',  # Specify the path to your client secret JSON file
+                'CalendarAPI/credentials.json',  # Specify the path to your client secret JSON file
                 scopes=SCOPES
             )
             credentials = flow.run_local_server(port=0)
@@ -49,11 +49,13 @@ def create_oauth2_credentials():
 
     return credentials
 
-def create_calendar_event():
+def create_calendar_event(calendar_id):
     """
-    Create and insert a calendar event.
-    Print the returned event's id and link.
-    Returns: Event object, including event id and link.
+    Create and insert a calendar event into a specific calendar.
+    Args:
+        calendar_id (str): The ID of the calendar to insert the event into.
+    Returns:
+        dict: The created event object, including event id and link.
     """
     try:
         # Use the create_oauth2_credentials function to obtain credentials
@@ -64,19 +66,19 @@ def create_calendar_event():
 
         # Event details
         event = {
-            'summary': 'Google I/O 2024',
-            'location': '800 Howard St., San Francisco, CA 94103',
-            'description': 'A chance to hear more about Google\'s developer products.',
+            'summary': 'Dummy Event',
+            'location': ' MNIT JAIPUR',
+            'description': 'testing testing',
             'start': {
-                'dateTime': '2024-07-09T09:00:00-07:00',
-                'timeZone': 'America/Los_Angeles',
+                'dateTime': '2024-07-08T22:30:00-07:00',
+                'timeZone': 'Asia/Kolkata',
             },
             'end': {
-                'dateTime': '2024-07-09T17:00:00-07:00',
-                'timeZone': 'America/Los_Angeles',
+                'dateTime': '2024-07-09T02:00:00-07:00',
+                'timeZone': 'Asia/Kolkata',
             },
             'recurrence': [
-                'RRULE:FREQ=DAILY;COUNT=2'
+                'RRULE:FREQ=DAILY;COUNT=1'
             ],
             'attendees': [
                 {'email': 'abhinavxt456@gmail.com'},
@@ -85,14 +87,14 @@ def create_calendar_event():
             'reminders': {
                 'useDefault': False,
                 'overrides': [
-                    {'method': 'email', 'minutes': 24 * 60},
+                    {'method': 'email', 'minutes': 60},
                     {'method': 'popup', 'minutes': 10},
                 ],
             },
         }
 
         # Create the event using Calendar API
-        event = service.events().insert(calendarId='primary', body=event).execute()
+        event = service.events().insert(calendarId=calendar_id, body=event).execute()
         print(f'Event created: {event.get("htmlLink")}')
 
         return event
@@ -103,4 +105,6 @@ def create_calendar_event():
 
 if __name__ == "__main__":
     # Example usage
-    create_calendar_event()
+    calendar_id = '1b90945a4bbd496d3efa45dbe482c0e315288f68a9a1cafbe0c8d329012836e7@group.calendar.google.com'  # Replace with your specific calendar ID
+    create_calendar_event(calendar_id)
+

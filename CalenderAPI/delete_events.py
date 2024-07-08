@@ -42,7 +42,7 @@ def create_oauth2_credentials():
                 return None
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json',  # Specify the path to your client secret JSON file
+                'CalenderAPI/credentials.json',  # Specify the path to your client secret JSON file
                 scopes=SCOPES
             )
             credentials = flow.run_local_server(port=0, prompt='consent', include_granted_scopes='true')

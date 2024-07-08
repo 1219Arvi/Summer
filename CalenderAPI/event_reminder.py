@@ -4,14 +4,13 @@ from dotenv import load_dotenv
 from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.exceptions import RefreshError
 from googleapiclient.errors import HttpError
 
 # Load environment variables from .env file
 load_dotenv()
 
 # OAuth2 scopes for Google Calendar API
-SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
+SCOPES = ['https://www.googleapis.com/auth/calendar.readonly', 'https://www.googleapis.com/auth/calendar.events']
 
 def create_oauth2_credentials():
     """
@@ -38,7 +37,7 @@ def create_oauth2_credentials():
             credentials.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-                'CalenderAPI/credentials.json',  # Specify the path to your client secret JSON file
+                'cCalendarAPI/credentials.json',  # Specify the path to your client secret JSON file
                 scopes=SCOPES
             )
             credentials = flow.run_local_server(port=0)
@@ -49,9 +48,10 @@ def create_oauth2_credentials():
 
     return credentials
 
-def delete_secondary_calendar(calendar_id):
+
+def set_reminder_for_event(calendar_id, event_id, reminder_minutes):
     """
-    Delete a secondary calendar using its calendar ID.
+    Set up a reminder for an existing event.
     """
     try:
         # Use the create_oauth2_credentials function to obtain credentials
@@ -60,16 +60,30 @@ def delete_secondary_calendar(calendar_id):
         # Build the Calendar API service using the obtained credentials
         service = build("calendar", "v3", credentials=credentials)
 
-        # Delete the calendar using Calendar API
-        service.calendars().delete(calendarId=calendar_id).execute()
-        print(f'Calendar with ID {calendar_id} deleted successfully.')
+        # Fetch the event details
+        event = service.events().get(calendarId=calendar_id, eventId=event_id).execute()
+
+        # Set the reminder
+        event['reminders'] = {
+            'useDefault': False,
+            'overrides': [
+                {'method': 'email', 'minutes': reminder_minutes},
+                {'method': 'popup', 'minutes': 10},
+            ],
+        }
+
+        # Update the event with the new reminder settings
+        updated_event = service.events().update(calendarId=calendar_id, eventId=event_id, body=event).execute()
+        print(f'Reminder set for event: {updated_event.get("htmlLink")}')
+
+        return updated_event
 
     except HttpError as error:
         print(f"An error occurred: {error}")
+        return None
 
 if __name__ == "__main__":
-    # Example calendar ID to be deleted
-    calendar_id = 'd4987aa38b62057cf4e8690677f6fe2fcfe34ac9dbc411628ccaf7a56e6ee7ce@group.calendar.google.com'  # Replace with the actual calendar ID
-
-    # Delete the secondary calendar
-    delete_secondary_calendar(calendar_id)
+    # Set a reminder for the newly created event
+    calendar_id="1b90945a4bbd496d3efa45dbe482c0e315288f68a9a1cafbe0c8d329012836e7@group.calendar.google.com" #write calender id here
+    event_id="7fmd579u06u59iee2r024ticfo" # write event id here
+    set_reminder_for_event(calendar_id, event_id, 60)
